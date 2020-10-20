@@ -59,23 +59,12 @@
           name: "{{hub}}/{{proj}}"
           tag: "{{branch}}"
 
-      - name: "Build image Dev and Stag"
+      - name: "Build image"
         community.general.docker_image:
           name: "{{hub}}/{{proj}}:{{branch}}"
           build:
             path: "{{dests}}/{{proj}}"
-            dockerfile: DockerfileDev
           source: build
           state: present
-        when: branch=="dev"
           
-      
-      - name: "Build image Prod"
-        community.general.docker_image:
-          name: "{{hub}}/{{proj}}:{{branch}}"
-          build:
-            path: "{{dests}}/{{proj}}"
-          source: build
-          state: present
-        when: branch=="master"
         
