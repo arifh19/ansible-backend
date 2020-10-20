@@ -21,12 +21,12 @@
           ports:
             - "{{portTest}}:8080"
 
-      - name: Test Container
-        uri:
-          url: "{{urlTest}}:{{portTest}}"
-          return_content: yes
-        register: test
-        failed_when: "'<!DOCTYPE html>' not in test.content"
+      # - name: Test Container
+      #   uri:
+      #     url: "{{urlTest}}:{{portTest}}"
+      #     return_content: yes
+      #   register: test
+      #   failed_when: "'<!DOCTYPE html>' not in test.content"
 
       - name: Stop a container
         community.general.docker_container:

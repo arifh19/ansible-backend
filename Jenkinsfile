@@ -3,7 +3,8 @@ def CommitHash
 def REPO = 'arifh19/restaurant-backend'
 def BRANCH_DEV = 'dev'
 def BRANCH_PROD = 'master'
-def REMOTE_DIR = 'restaurant'
+def REMOTE_DIR = 'ansibleBackend'
+def PROJECT_DIR = '/home/ansman/project/restaurant-backend/ansible'
 
 pipeline {
     agent any
@@ -15,13 +16,13 @@ pipeline {
         stage('Build project') {
             steps {
                 nodejs('nodejs12') {
-                    sh 'npm install'
+                    sh 'yarn install'
                 }
             }
         }
         stage('Run Testing') {
             when {
-                expression  {
+                expression {
                     params.RunTest
                 }
             }
@@ -32,26 +33,59 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // CommitHash = sh (script : "git log -n 1 --pretty=format:'%H'", returnStdout: true)
-                    buildDocker = docker.build("${REPO}:${GIT_BRANCH}")
-                    // sh ('docker rmi $(docker images --filter "dangling=true" -q --no-trunc)')
-
+                    sshPublisher(
+                        publishers: [
+                            sshPublisherDesc(
+                                configName: 'ctrl-node',
+                                verbose: false,
+                                transfers: [
+                                    sshTransfer(
+                                        sourceFiles: "ansible/vars.yml",
+                                        remoteDirectory: "${REMOTE_DIR}",
+                                        execTimeout: 120000,
+                                    )
+                                ]
+                            )
+                        ]
+                    )
+                }
+                script {
+                    sshPublisher(
+                        publishers: [
+                            sshPublisherDesc(
+                                configName: 'ctrl-node',
+                                verbose: false,
+                                transfers: [
+                                    sshTransfer(
+                                        sourceFiles: "ansible/builder.yml",
+                                        remoteDirectory: "${REMOTE_DIR}",
+                                        execCommand: "ansible-playbook ${REMOTE_DIR}/builder.yml --extra-vars 'branch=${BRANCH_NAME}'",
+                                        execTimeout: 120000,
+                                    )
+                                ]
+                            )
+                        ]
+                    )
                 }
             }
         }
-        stage('Push Image') {
-            when {
-                expression {
-                    params.RunTest
-                }
-            }
+        stage('Test Container') {
             steps {
                 script {
-                    if (BRANCH_NAME == BRANCH_PROD) {
-                        buildDocker.push("${GIT_BRANCH}")
-                    }else {
-                        buildDocker.push("${GIT_BRANCH}")
-                    }
+                    sshPublisher(
+                        publishers: [
+                            sshPublisherDesc(
+                                configName: 'ctrl-node',
+                                verbose: false,
+                                transfers: [
+                                    sshTransfer(
+                                        execCommand: "ansible-playbook -i ${PROJECT_DIR}/hosts ${PROJECT_DIR}/testing.yml --extra-vars 'branch=${BRANCH_NAME}'",
+                                        execTimeout: 120000,
+                                    )
+                                ]
+                            )
+                        ]
+                    )
                 }
             }
         }
@@ -62,14 +96,11 @@ pipeline {
                         sshPublisher(
                             publishers: [
                                 sshPublisherDesc(
-                                    configName: 'production',
+                                    configName: 'ctrl-node',
                                     verbose: false,
                                     transfers: [
                                         sshTransfer(
-                                            // execCommand: "docker pull ${REPO}:latest; docker kill ${REPO}; docker run -d --rm --name ${REPO} -p 80:80 ${REPO}:latest",
-                                            sourceFiles: "docker-compose.yml",
-                                            remoteDirectory: "${REMOTE_DIR}",
-                                            execCommand: "docker-compose -f restaurant/docker-compose.yml stop; docker rm restaurant_backend_1; docker rm restaurant_backend_2; docker rm restaurant_backend_3; docker rmi ${REPO}:${BRANCH_DEV}; docker-compose -f restaurant/docker-compose.yml up -d",
+                                            execCommand: "ansible-playbook -i ${PROJECT_DIR}/hosts ${PROJECT_DIR}/deployProd.yml --extra-vars 'branch=${BRANCH_NAME}'",
                                             execTimeout: 120000,
                                         )
                                     ]
@@ -80,16 +111,13 @@ pipeline {
                         sshPublisher(
                             publishers: [
                                 sshPublisherDesc(
-                                    configName: 'development',
+                                    configName: 'ctrl-node',
                                     verbose: false,
                                     transfers: [
                                         sshTransfer(
-                                            sourceFiles: "docker-compose.dev.yml",
-                                            remoteDirectory: "${REMOTE_DIR}",
-                                            // execCommand: "docker rmi arifh19/cobatampil:${env.GIT_BRANCH}; docker pull arifh19/cobatampil:${env.GIT_BRANCH}; docker kill cobatampil; docker run -d --rm --name cobatampil -p 80:80 arifh19/cobatampil:${env.GIT_BRANCH}",
-                                            execCommand: "docker-compose -f restaurant/docker-compose.dev.yml stop; docker rm restaurant_backend_1; docker rm restaurant_backend_2; docker rm restaurant_backend_3; docker rmi ${REPO}:${BRANCH_DEV}; docker-compose -f restaurant/docker-compose.dev.yml up -d",
+                                            execCommand: "ansible-playbook -i ${PROJECT_DIR}/hosts ${PROJECT_DIR}/deployDev.yml --extra-vars 'branch=${BRANCH_NAME}'",
                                             execTimeout: 120000,
-                                        ),
+                                        )
                                     ]
                                 ),
                             ]
