@@ -59,7 +59,7 @@ pipeline {
                                     sshTransfer(
                                         sourceFiles: "ansible/builder.yml",
                                         remoteDirectory: "${REMOTE_DIR}",
-                                        execCommand: "ansible-playbook ${REMOTE_DIR}/builder.yml --extra-vars 'branch=${BRANCH_NAME}'",
+                                        execCommand: "ansible-playbook ${REMOTE_DIR}/ansible/builder.yml --extra-vars 'branch=${BRANCH_NAME}'",
                                         execTimeout: 120000,
                                     )
                                 ]
