@@ -1,0 +1,70 @@
+---
+  - name: 'Deploy to Production'
+    hosts: prodserver
+    vars_files:
+      - vars.yml
+
+    tasks:
+      - name: "Check connection to node"
+        ping:
+
+      - name: Install Docker
+        become: true
+        yum:
+          name: docker
+          state: present
+      
+      - name: Ensure docker is running
+        become: true
+        service:
+          name: docker
+          state: started
+          enabled: yes
+
+      - name: Add user to group Docker
+        become: true
+        user:
+          name: ansman
+          shell: /bin/bash
+          groups: docker
+          append: yes
+      
+      - name: Install docker-compose
+        become: true
+        get_url: 
+          url : https://github.com/docker/compose/releases/download/1.27.4/docker-compose-Linux-x86_64
+          dest: /usr/local/bin/docker-compose
+          owner: "{{user}}"
+          group:  "{{user}}"
+          mode: 'u+x,g+x'
+      
+      - name: Stop Docker Compose
+        args:
+          chdir: "{{remote_file}}"
+        command: docker-compose -f {{dockercomposeProd}} stop
+
+      - name: Remove Backend Container 1
+        command: docker rm restaurant_backend_1
+
+      - name: Remove Backend Container 2
+        command: docker rm restaurant_backend_2
+      
+      - name: Remove Backend Container 3
+        command: docker rm restaurant_backend_3
+      
+      - name: Remove Backend Image
+        command: docker rmi {{hub}}/{{proj}}:{{branch}}
+
+      - name: Send docker-compose.yml to server
+        copy:
+          src: "{{dests}}/{{proj}}/{{dockercomposeProd}}"
+          dest: "{{remote_file}}/{{dockercomposeProd}}"
+          owner: "{{user}}"
+          group: "{{user}}"
+          mode: "u+x,g+x"
+
+      - name: Run Docker Compose
+        args:
+          chdir: "{{remote_file}}"
+        command: docker-compose -f {{dockercomposeProd}} up -d
+        
