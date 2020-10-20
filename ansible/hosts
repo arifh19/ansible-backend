@@ -1,0 +1,10 @@
+localhost
+[server]
+stagserver ansible_host=172.31.92.242 ansible_connection=ssh
+devserver ansible_host=172.31.83.251 ansible_connection=ssh
+prodserver ansible_host=172.31.21.2 ansible_connection=ssh
+dbcenter ansible_host=172.31.95.232 ansible_connection=ssh
+
+[deployserver]
+devserver ansible_host=172.31.83.251 ansible_connection=ssh
+stagserver ansible_host=172.31.92.242 ansible_connection=ssh

@@ -1,0 +1,40 @@
+---
+  - name: Testing Container
+    hosts: localhost
+    vars_files:
+      - vars.yml
+    
+    tasks:
+      - name: Check connection
+        ping:
+      
+      - name: Ensure python docker
+        become: true
+        pip:
+          name: docker
+
+      - name: Create Container
+        community.general.docker_container:
+          name: "{{proj}}"
+          image: "{{hub}}/{{proj}}:{{branch}}"
+          state: started
+          ports:
+            - "{{portTest}}:8080"
+
+      - name: Test Container
+        uri:
+          url: "{{urlTest}}:{{portTest}}"
+          return_content: yes
+        register: test
+        failed_when: "'<!DOCTYPE html>' not in test.content"
+
+      - name: Stop a container
+        community.general.docker_container:
+          name: "{{proj}}"
+          state: stopped
+          
+      - name: Tag and push to docker hub
+        community.general.docker_image:
+          name: "{{hub}}/{{proj}}:{{branch}}"
+          push: yes
+          source: local

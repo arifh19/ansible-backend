@@ -1,0 +1,11 @@
+---
+  hub: "arifh19"
+  proj: "frontend"
+  dests: /home/ansman/project
+  repo: https://github.com/arifh19/restaurant-frontend.git
+  urlTest: "http://localhost"
+  portTest: "8080"
+  user: ansman
+  remote_file: /home/ansman/restaurant
+  dockercomposeDev: docker-compose.dev.yml
+  dockercomposeProd: docker-compose.yml

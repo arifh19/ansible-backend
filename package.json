@@ -1,0 +1,38 @@
+{
+  "name": "restaurant",
+  "version": "1.0.0",
+  "description": "Aplikasi restoran",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "keywords": [
+    "restoran",
+    "api",
+    "express"
+  ],
+  "author": "Arif Hidayat",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.0.0",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "fs": "0.0.1-security",
+    "ip": "^1.1.5",
+    "joi": "^17.2.1",
+    "jsonwebtoken": "^8.5.1",
+    "jwt-decode": "^3.0.0-beta.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.2",
+    "pg": "^8.3.3",
+    "pg-pool": "^3.2.1",
+    "rand-token": "^1.0.1",
+    "redis": "^3.0.2",
+    "simple-node-logger": "^18.12.24",
+    "uuid": "^8.3.0",
+    "validatorjs": "^3.19.2"
+  }
+}

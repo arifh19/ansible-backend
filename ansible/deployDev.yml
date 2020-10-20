@@ -1,0 +1,52 @@
+---
+  - name: 'Deploy to Development and Stagging'
+    hosts: deployserver
+    vars_files:
+      - vars.yml
+
+    tasks:
+      - name: "Check connection to node"
+        ping:
+
+      - name: Install Docker
+        become: true
+        yum:
+          name: docker
+          state: present
+      
+      - name: Ensure docker is running
+        become: true
+        service:
+          name: docker
+          state: started
+          enabled: yes
+
+      - name: Add user to group Docker
+        become: true
+        user:
+          name: ansman
+          shell: /bin/bash
+          groups: docker
+          append: yes
+      
+      - name: Install docker-compose
+        become: true
+        get_url: 
+          url : https://github.com/docker/compose/releases/download/1.27.4/docker-compose-Linux-x86_64
+          dest: /usr/local/bin/docker-compose
+          owner: "{{user}}"
+          group:  "{{user}}"
+          mode: 'u+x,g+x'
+
+      - name: Send docker-compose.yml to server
+        copy:
+          src: "{{dests}}/{{proj}}/docker-compose.dev.yml"
+          dest: "{{remote_file}}/{{dockercomposeDev}}"
+          owner: "{{user}}"
+          group: "{{user}}"
+          mode: 'u+x,g+x'
+
+      - name: Run Docker Compose
+        chdir: "{{remote_file}}"
+        command: docker-compose -f {{dockercomposeDev}} up -d
+        
