@@ -53,14 +53,22 @@
         args:
           chdir: "{{dests}}/{{proj}}"
 
-      - name: "Build image Dev and Prod"
+      - name: Remove image
+        community.general.docker_image:
+          state: absent
+          name: "{{hub}}/{{proj}}"
+          tag: "{{branch}}"
+
+      - name: "Build image Dev and Stag"
         community.general.docker_image:
           name: "{{hub}}/{{proj}}:{{branch}}"
           build:
             path: "{{dests}}/{{proj}}"
             dockerfile: DockerfileDev
           source: build
+          state: present
         when: branch=="dev"
+          
       
       - name: "Build image Prod"
         community.general.docker_image:
@@ -68,4 +76,6 @@
           build:
             path: "{{dests}}/{{proj}}"
           source: build
+          state: present
         when: branch=="master"
+        

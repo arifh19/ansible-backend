@@ -20,6 +20,7 @@
           state: started
           ports:
             - "{{portTest}}:8080"
+          auto_remove: yes
 
       # - name: Test Container
       #   uri:
@@ -31,7 +32,7 @@
       - name: Stop a container
         community.general.docker_container:
           name: "{{proj}}"
-          state: stopped
+          state: absent
           
       - name: Tag and push to docker hub
         community.general.docker_image:
