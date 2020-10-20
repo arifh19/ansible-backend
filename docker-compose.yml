@@ -1,5 +1,17 @@
 version: "3.7"
 services:
+  db:
+    image: postgres:latest
+    networks:
+      - restaurant-network
+    volumes:
+      - ./postgresql/pgdata:/var/lib/postgresql/data
+      - ./postgresql/data:/data
+    environment:
+      POSTGRES_PASSWORD: 1sampai9
+      POSTGRES_USER: arifh19
+      POSTGRES_DB: restaurant
+
   redis:
     image: arifh19/redis-restaurant
     networks:
@@ -10,10 +22,11 @@ services:
   backend:
     image: arifh19/restaurant-backend:master
     ports:
-      - "3000-3002:3000"
+      - "127.0.0.1:3000-3002:3000"
     networks:
       - restaurant-network
     depends_on:
+      - db
       - redis
     volumes:
       - ./backend/logfile:/backend/logfile
@@ -27,7 +40,7 @@ services:
           memory: 50M
     environment:
       - JWT_KEYS={=AUx857wf^p!fp>+Nx5KK-.xucu7p
-      - DB_HOST=172.31.95.232
+      - DB_HOST=db
       - DB_USER=arifh19
       - DB_PASSWORD=1sampai9
       - DB_NAME=restaurant
